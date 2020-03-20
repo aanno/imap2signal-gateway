@@ -19,6 +19,13 @@ dependencies {
     api("com.sun.mail", "javax.mail", "1.6.2")
     api("de.swiesend", "secret-service", "1.0.0-RC.3")
     api("org.slf4j", "slf4j-api", "1.7.0")
+    api(":signal-cli") {
+        exclude("com.github.bdeneuter", "dbus-java")
+        exclude("org.freedesktop.dbus", "dbus-java")
+    }
+    // api("com.github.hypfvieh", "dbus-java", "3.2.0")
+    api("com.github.bdeneuter", "dbus-java", "2.7")
+
     runtimeOnly("org.slf4j", "slf4j-jdk14", "1.7.0")
 
     // testApi("junit", "junit", "4.12")
