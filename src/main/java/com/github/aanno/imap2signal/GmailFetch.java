@@ -1,7 +1,11 @@
 package com.github.aanno.imap2signal;
 
+import org.asamk.Signal;
 import org.asamk.signal.manager.Manager;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.freedesktop.secret.simple.SimpleCollection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.whispersystems.signalservice.api.push.exceptions.EncapsulatedExceptions;
 
 import javax.mail.Flags;
@@ -12,6 +16,7 @@ import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.search.FlagTerm;
 import java.io.IOException;
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,6 +29,8 @@ import java.util.stream.Collectors;
  */
 public class GmailFetch {
 
+    private static final Logger LOG = LoggerFactory.getLogger(GmailFetch.class);
+
     private static final String KEYRING_COLLECTION_NAME = "imap2signal";
     private static final String KEYRING_COLLECTION_SECRET = "secret";
 
@@ -35,19 +42,41 @@ public class GmailFetch {
 
     public static void main(String[] args) throws Exception, EncapsulatedExceptions {
         GmailFetch dut = new GmailFetch();
+
+        /*
+        String sender = new String(dut.getPasswdFor(SIGNAL_ACCOUNT));
+        String recipient = new String(dut.getPasswdFor(SIGNAL_RECIPIENTS));
+        LOG.info("sender: " + sender);
+        LOG.info("recipient: " + recipient);
+        System.exit(0);
+         */
+
+        /*
+        List<String> list = new ArrayList<>();
+        list.add("hello");
+        list.add("world");
+         */
+
         List<String> list = dut.getSubjectsOfNewMessages();
+        if (list.size() >= 40) {
+            list = list.subList(0, 40);
+        }
         for (String s : list) {
             System.out.println(s);
         }
         dut.sendWithSignal(list.stream().collect(Collectors.joining("\n")));
         // System.out.println(dut.getPasswdFor(ACCOUNT));
+
+        // Seems to be needed
+        System.exit(0);
     }
 
     private Session session;
     private SimpleCollection collection;
-    private Manager manager;
+    private Signal manager;
 
     public GmailFetch() {
+        Security.addProvider(new BouncyCastleProvider());
     }
 
     public List<String> getSubjectsOfNewMessages() throws MessagingException, IOException {
@@ -105,6 +134,7 @@ public class GmailFetch {
         if (manager == null) {
             manager = new Manager(sender,
                     System.getProperty("user.home") + "/" + SIGNAL_CONFIG_DIR);
+            ((Manager) manager).init();
         }
         manager.sendMessage(message, Collections.emptyList(), recipient);
     }

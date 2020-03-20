@@ -25,6 +25,7 @@ dependencies {
     }
     // api("com.github.hypfvieh", "dbus-java", "3.2.0")
     api("com.github.bdeneuter", "dbus-java", "2.7")
+    api("org.bouncycastle", "bcprov-jdk15on", "1.64")
 
     runtimeOnly("org.slf4j", "slf4j-jdk14", "1.7.0")
 
