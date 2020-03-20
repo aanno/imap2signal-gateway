@@ -5,6 +5,7 @@ pluginManagement {
         jcenter()
         gradlePluginPortal()
     }
+    // https://stackoverflow.com/questions/52800536/how-to-use-plugin-version-from-gradle-properties-in-gradle-kotlin-dsl
     resolutionStrategy {
         eachPlugin {
             when (requested.id.id) {

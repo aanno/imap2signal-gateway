@@ -68,4 +68,8 @@ public class GmailFetch {
         throw new IllegalArgumentException("account " + account +
                 " not found in keyring collection " + KEYRING_COLLECTION_NAME);
     }
+
+    private void sendWithSignal() {
+
+    }
 }
