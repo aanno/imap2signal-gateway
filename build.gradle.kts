@@ -2,6 +2,8 @@ val javaVersion = "11"
 
 plugins {
     java
+    idea
+    eclipse
     kotlin("jvm") version "1.3.70"
 }
 
@@ -32,6 +34,20 @@ dependencies {
     testImplementation("io.kotlintest", "kotlintest-runner-junit5", "3.4.2")
 }
 
+idea {
+    module {
+        setDownloadJavadoc(true)
+        setDownloadSources(true)
+    }
+}
+
+eclipse {
+    classpath {
+        setDownloadJavadoc(true)
+        setDownloadSources(true)
+    }
+}
+
 configure<JavaPluginConvention> {
     sourceCompatibility = JavaVersion.VERSION_11
 }
@@ -50,5 +66,21 @@ tasks {
     // Use the built-in JUnit support of Gradle.
     "test"(Test::class) {
         useJUnitPlatform()
+    }
+
+    // https://stackoverflow.com/questions/52596968/build-source-jar-with-gradle-kotlin-dsl
+    val sourcesJar by creating(Jar::class) {
+        dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+        classifier = "sources"
+        from(sourceSets["main"].allSource)
+    }
+    val javadocJar by creating(Jar::class) {
+        dependsOn(JavaPlugin.JAVADOC_TASK_NAME)
+        classifier = "javadoc"
+        from(javadoc)
+    }
+    artifacts {
+        add("archives", sourcesJar)
+        add("archives", javadocJar)
     }
 }

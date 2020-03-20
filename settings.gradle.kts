@@ -26,3 +26,4 @@ pluginManagement {
 
 rootProject.name = "imap2signal-gateway"
 
+includeBuild("signal-cli")
