@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 /**
  * https://stackoverflow.com/questions/28689099/javamail-reading-recent-unread-mails-using-imap
  */
-public class GmailFetch {
+public class GmailFetch implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(GmailFetch.class);
 
@@ -41,34 +41,17 @@ public class GmailFetch {
     private static final String SIGNAL_RECIPIENTS = "recipient";
 
     public static void main(String[] args) throws Exception, EncapsulatedExceptions {
-        GmailFetch dut = new GmailFetch();
-
-        /*
-        String sender = new String(dut.getPasswdFor(SIGNAL_ACCOUNT));
-        String recipient = new String(dut.getPasswdFor(SIGNAL_RECIPIENTS));
-        LOG.info("sender: " + sender);
-        LOG.info("recipient: " + recipient);
-        System.exit(0);
-         */
-
-        /*
-        List<String> list = new ArrayList<>();
-        list.add("hello");
-        list.add("world");
-         */
-
-        List<String> list = dut.getSubjectsOfNewMessages();
-        if (list.size() >= 40) {
-            list = list.subList(0, 40);
+        try (GmailFetch dut = new GmailFetch()) {
+            List<String> list = dut.getSubjectsOfNewMessages();
+            // List<String> list = dut.getTestMessages();
+            if (list.size() >= 40) {
+                list = list.subList(0, 40);
+            }
+            for (String s : list) {
+                System.out.println(s);
+            }
+            dut.sendWithSignal(list.stream().collect(Collectors.joining("\n")));
         }
-        for (String s : list) {
-            System.out.println(s);
-        }
-        dut.sendWithSignal(list.stream().collect(Collectors.joining("\n")));
-        // System.out.println(dut.getPasswdFor(ACCOUNT));
-
-        // Seems to be needed
-        System.exit(0);
     }
 
     private Session session;
@@ -77,6 +60,13 @@ public class GmailFetch {
 
     public GmailFetch() {
         Security.addProvider(new BouncyCastleProvider());
+    }
+
+    public List<String> getTestMessages() {
+        List<String> result = new ArrayList<>();
+        result.add("hello");
+        result.add("world");
+        return result;
     }
 
     public List<String> getSubjectsOfNewMessages() throws MessagingException, IOException {
@@ -137,5 +127,12 @@ public class GmailFetch {
             ((Manager) manager).init();
         }
         manager.sendMessage(message, Collections.emptyList(), recipient);
+    }
+
+    @Override
+    public void close() {
+        if (collection != null) {
+            collection.close();
+        }
     }
 }
