@@ -21,7 +21,11 @@
 
 * [keyring overview](https://rtfm.co.ua/en/what-is-linux-keyring-gnome-keyring-secret-service-and-d-bus/)
 * [secret service](https://github.com/swiesend/secret-service) java library for using keyring
-* [dbus-java](https://github.com/hypfvieh/dbus-java)
+* dbus-java
+  + [dbus-java documentation](https://dbus.freedesktop.org/doc/dbus-java/)
+  + [dbus-java](https://github.com/bdeneuter/dbus-java)
+  + [dbus-java deprecated implementation](https://github.com/freedesktop/dbus-java)
+  + [dbus-java new implementation](https://github.com/hypfvieh/dbus-java) but incompatible (!)
 * security alerts:
   + https://nvd.nist.gov/vuln/detail/CVE-2018-19358
   + https://tools.cisco.com/security/center/viewAlert.x?alertId=59179
@@ -50,5 +54,4 @@
 * [cli overview](https://github.com/AsamK/signal-cli/blob/master/man/signal-cli.1.adoc)
 * [link to other devices](https://github.com/AsamK/signal-cli/wiki/Linking-other-devices-(Provisioning))
   + [link bug](https://github.com/AsamK/signal-cli/issues/277)
-
-
+* [dbus support](https://github.com/AsamK/signal-cli/wiki/DBus-service)
