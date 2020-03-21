@@ -10,17 +10,28 @@
 * [push messages](https://stackoverflow.com/questions/4389994/does-javamail-support-server-push)
 * [clear message cache](https://stackoverflow.com/questions/1466720/how-to-force-javamail-to-clear-its-message-cache)
 
+## dns
+
+* http://www.ioncannon.net/system-administration/58/using-java-to-get-detailed-dns-information/
+* https://www.tomred.net/java/extended-email-validation-using-dns-mx-lookup.html
+* https://www.rgagnon.com/javadetails/java-0452.html
+
 ## password stores
 
 * [java library for windows credentials](https://github.com/dariusz-szczepaniak/java.jna.WindowsCredentialManager)
 * [microsoft git credential manager](https://github.com/microsoft/Git-Credential-Manager-Core)
 * [tmobile's t-vault](https://github.com/tmobile/t-vault) based on vault
+* [keepassxc](https://keepassxc.org/project/) has [dbus support](https://github.com/keepassxreboot/keepassxc/wiki/Using-DBus-with-KeePassXC)
+* [jPasswords](https://sourceforge.net/projects/jpws/)
 * [master password](https://gitlab.com/MasterPassword/MasterPassword)
+* [java multi platform library](https://github.com/joval/jKeyring)
 
 ### keyring
 
 * [keyring overview](https://rtfm.co.ua/en/what-is-linux-keyring-gnome-keyring-secret-service-and-d-bus/)
+* https://www.linux-magazin.de/ausgaben/2010/12/api-fuer-vertrauliches/
 * [secret service](https://github.com/swiesend/secret-service) java library for using keyring
+  + does _not_ work with kwallet: https://github.com/swiesend/secret-service/issues/8
 * dbus-java
   + [dbus-java documentation](https://dbus.freedesktop.org/doc/dbus-java/)
   + [dbus-java](https://github.com/bdeneuter/dbus-java)
@@ -35,6 +46,8 @@
 * [gnome keyring (archlinux)](https://wiki.archlinux.org/index.php/GNOME/Keyring)
 
 #### kwallet
+
+* [password extraction with perl](https://www.perlmonks.org/?node_id=869620)
 
 ## [vault](https://www.vaultproject.io/)
 
