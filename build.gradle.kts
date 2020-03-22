@@ -31,6 +31,10 @@ dependencies {
         exclude("com.github.bdeneuter", "dbus-java")
         exclude("org.freedesktop.dbus", "dbus-java")
     }
+    // ATTENTION: deps of signal-cli (UPDATED)
+    api("com.squareup.okio", "okio", "1.17.5")
+    api("com.squareup.okhttp3", "okhttp", "3.14.7")
+
     // api("com.github.hypfvieh", "dbus-java", "3.2.0")
     api("com.github.bdeneuter", "dbus-java", "2.7")
     api("org.bouncycastle", "bcprov-jdk15on", "1.64")

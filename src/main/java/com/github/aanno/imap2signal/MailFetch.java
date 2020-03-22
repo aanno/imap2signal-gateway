@@ -71,6 +71,10 @@ public class MailFetch implements AutoCloseable {
                 dut.setLastCheck(now);
             }
         }
+        // OkHttp3 hangs on Http2: This will be fixed (only) in OkHttp3 version 4.5.1-RC1, see
+        // https://github.com/square/okhttp/issues/5832
+        // https://github.com/square/okhttp/issues/4029
+        System.exit(0);
     }
 
     private final boolean testOnly;
