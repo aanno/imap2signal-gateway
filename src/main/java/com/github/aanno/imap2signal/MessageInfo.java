@@ -1,9 +1,7 @@
 package com.github.aanno.imap2signal;
 
-import org.jetbrains.annotations.NotNull;
-
+import javax.annotation.Nonnull;
 import java.time.Instant;
-import java.time.temporal.TemporalField;
 import java.util.Objects;
 import java.util.StringJoiner;
 
@@ -45,7 +43,7 @@ public final class MessageInfo implements Comparable<MessageInfo> {
     }
 
     @Override
-    public int compareTo(@NotNull MessageInfo o) {
+    public int compareTo(@Nonnull MessageInfo o) {
         // reverse on purpose: Newest messages first!
         int result = Long.compare(o.timeInMillis, timeInMillis);
         if (result == 0) {

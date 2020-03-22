@@ -1,6 +1,5 @@
 package com.github.aanno.imap2signal;
 
-import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 import com.github.marlonlom.utilities.timeago.TimeAgo;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
@@ -12,17 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.whispersystems.signalservice.api.push.exceptions.EncapsulatedExceptions;
 
-import javax.mail.Flags;
-import javax.mail.Folder;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Store;
+import javax.mail.*;
 import javax.mail.search.FlagTerm;
 import java.io.IOException;
 import java.security.Security;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
 import java.util.prefs.Preferences;

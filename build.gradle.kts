@@ -1,7 +1,7 @@
 val javaVersion = "11"
 
 plugins {
-    // id("org.javamodularity.moduleplugin") version "1.6.0"
+    id("org.javamodularity.moduleplugin") version "1.6.0"
     `java-library`
     `maven-publish`
     idea
@@ -37,6 +37,7 @@ dependencies {
 
     api("com.github.marlonlom", "timeago", "4.0.1")
     api("com.google.guava", "guava", "28.2-jre")
+    api("com.google.code.findbugs", "jsr305", "3.0.2")
 
     runtimeOnly("org.slf4j", "slf4j-jdk14", "1.7.0")
 
@@ -111,10 +112,9 @@ tasks {
             attributes(
                 mapOf(
                     "Main-Class" to "com.github.aanno.imap2signal.MailFetch",
-                    // "Main-Class" to application.mainClassName
-                    // "Class-Path" to configurations.compile.collect { it.getName() }.join(' ')
                     "Class-Path" to configurations.runtimeClasspath
-                        .get().joinToString(";")
+                        .get().map{ file -> file.getName()}
+                        .joinToString(";", "lib/")
                 )
             )
         }
