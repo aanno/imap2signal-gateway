@@ -27,7 +27,7 @@ public class MailFetch implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(MailFetch.class);
 
     private static final int MAX_ENTRIES = 40;
-    private static String[] SUBDOMAINS_TO_TRY = new String[] { "imap.", "mail." };
+    private static String[] SUBDOMAINS_TO_TRY = new String[]{"imap.", "mail."};
 
     private static final String KEYRING_COLLECTION_NAME = "imap2signal";
     private static final String KEYRING_COLLECTION_SECRET = "secret";
@@ -64,12 +64,14 @@ public class MailFetch implements AutoCloseable {
             System.out.println("new messages: " + sortedSet.size());
             sortedSet = dut.filterOnLastCheck(now, sortedSet);
             System.out.println("messages after: " + sortedSet.size());
-            Multimap<HumanRelativeDate, String> map = dut.binMessageInfos(sortedSet);
-            String message = dut.toMessage(map);
-            LOG.info("send\n:" + message);
-            if (!testOnly) {
-                dut.sendWithSignal(message);
-                dut.setLastCheck(now);
+            if (!sortedSet.isEmpty()) {
+                Multimap<HumanRelativeDate, String> map = dut.binMessageInfos(sortedSet);
+                String message = dut.toMessage(map);
+                LOG.info("send\n:" + message);
+                if (!testOnly) {
+                    dut.sendWithSignal(message);
+                    dut.setLastCheck(now);
+                }
             }
         }
         // OkHttp3 hangs on Http2: This will be fixed (only) in OkHttp3 version 4.5.1-RC1, see
