@@ -27,6 +27,7 @@ public class MailFetch implements AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(MailFetch.class);
 
     private static final int MAX_ENTRIES = 40;
+    private static String[] SUBDOMAINS_TO_TRY = new String[] { "imap.", "mail." };
 
     private static final String KEYRING_COLLECTION_NAME = "imap2signal";
     private static final String KEYRING_COLLECTION_SECRET = "secret";
@@ -123,8 +124,32 @@ public class MailFetch implements AutoCloseable {
             session = Session.getDefaultInstance(new Properties());
         }
         Store store = session.getStore("imaps");
+        String domain = mailAccount.substring(mailAccount.lastIndexOf("@") + 1);
+        String pw = new String(getPasswdFor(mailAccount));
+        /*
         store.connect("imap.googlemail.com", 993, mailAccount,
                 new String(getPasswdFor(mailAccount)));
+                */
+        MessagingException last = null;
+        for (String sub : SUBDOMAINS_TO_TRY) {
+            String mailHost = sub + domain;
+            LOG.info("imap connect: trying " + mailHost + " ...");
+            try {
+                store.connect(mailHost, 993, mailAccount, pw);
+                LOG.info("imap connected to " + mailHost);
+                last = null;
+                // using that ...
+                break;
+            } catch (MessagingException e) {
+                last = e;
+                // try again
+            }
+        }
+        if (last != null) {
+            LOG.info("imap connection failed");
+            throw last;
+        }
+
         Folder inbox = store.getFolder("INBOX");
         inbox.open(Folder.READ_ONLY);
 
