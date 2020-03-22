@@ -39,29 +39,48 @@ public class MailFetch implements AutoCloseable {
     private static final String SIGNAL_RECIPIENTS = "recipient";
 
     public static void main(String[] args) throws Exception, EncapsulatedExceptions {
+        String mailAccount = MAIL_ACCOUNT;
+        boolean testOnly = false;
+        if (args.length > 0) {
+            mailAccount = args[0];
+        }
+        if ("test".equals(mailAccount)) {
+            testOnly = true;
+        }
+        LOG.info("mail account: " + mailAccount + " testOnly: " + testOnly);
         long now = System.currentTimeMillis();
-        try (MailFetch dut = new MailFetch()) {
-            // for tests
-            dut.setLastCheck(Long.MIN_VALUE);
-            // List<MessageInfo> list = dut.getSubjectsOfNewMessages();
-            SortedSet<MessageInfo> sortedSet = dut.getTestMessages();
+        try (MailFetch dut = new MailFetch(testOnly)) {
+            if (testOnly) {
+                // only for tests
+                dut.setLastCheck(Long.MIN_VALUE);
+            }
+            SortedSet<MessageInfo> sortedSet;
+            if (testOnly) {
+                sortedSet = dut.getTestMessages();
+            } else {
+                sortedSet = dut.getSubjectsOfNewMessages(mailAccount);
+            }
             System.out.println("new messages: " + sortedSet.size());
             sortedSet = dut.filterOnLastCheck(now, sortedSet);
             System.out.println("messages after: " + sortedSet.size());
             Multimap<String, String> map = dut.binMessageInfos(sortedSet);
             String message = dut.toMessage(map);
-            System.out.println(message);
-            // dut.sendWithSignal(sortedSet.stream().collect(Collectors.joining("\n")));
-            dut.setLastCheck(now);
+            LOG.info("send\n:" + message);
+            if (!testOnly) {
+                dut.sendWithSignal(message);
+                dut.setLastCheck(now);
+            }
         }
     }
 
+    private final boolean testOnly;
     private Preferences prefs;
     private Session session;
     private SimpleCollection collection;
     private Signal manager;
 
-    public MailFetch() {
+    public MailFetch(boolean testOnly) {
+        this.testOnly = testOnly;
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
             Security.addProvider(new BouncyCastleProvider());
         }
@@ -93,13 +112,15 @@ public class MailFetch implements AutoCloseable {
         return result.toString();
     }
 
-    public SortedSet<MessageInfo> getSubjectsOfNewMessages() throws MessagingException, IOException {
+    public SortedSet<MessageInfo> getSubjectsOfNewMessages(String mailAccount)
+            throws MessagingException, IOException {
         SortedSet<MessageInfo> result = new TreeSet<>();
         if (session == null) {
             session = Session.getDefaultInstance(new Properties());
         }
         Store store = session.getStore("imaps");
-        store.connect("imap.googlemail.com", 993, MAIL_ACCOUNT, new String(getPasswdFor(MAIL_ACCOUNT)));
+        store.connect("imap.googlemail.com", 993, mailAccount,
+                new String(getPasswdFor(mailAccount)));
         Folder inbox = store.getFolder("INBOX");
         inbox.open(Folder.READ_ONLY);
 
