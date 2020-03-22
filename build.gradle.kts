@@ -32,7 +32,7 @@ dependencies {
         exclude("org.freedesktop.dbus", "dbus-java")
     }
     // api("com.github.hypfvieh", "dbus-java", "3.2.0")
-    // api("com.github.bdeneuter", "dbus-java", "2.7")
+    api("com.github.bdeneuter", "dbus-java", "2.7")
     api("org.bouncycastle", "bcprov-jdk15on", "1.64")
 
     api("com.github.marlonlom", "timeago", "4.0.1")
@@ -113,8 +113,8 @@ tasks {
                 mapOf(
                     "Main-Class" to "com.github.aanno.imap2signal.MailFetch",
                     "Class-Path" to configurations.runtimeClasspath
-                        .get().map{ file -> file.getName()}
-                        .joinToString(";", "lib/")
+                        .get().map{ file -> "lib/" + file.getName()}
+                        .joinToString(" ")
                 )
             )
         }
