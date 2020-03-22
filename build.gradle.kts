@@ -76,8 +76,19 @@ configure<JavaPluginConvention> {
     sourceCompatibility = JavaVersion.VERSION_11
 }
 tasks {
-    withType<Jar> {
-
+    withType<JavaCompile> {
+        doFirst {
+            options.compilerArgs.addAll(listOf(
+                "--release", "11",
+                "-deprecation", "-Xlint:all"
+                // "--add-exports=java.xml/com.sun.org.apache.xerces.internal.parsers=com.github.aanno.dbtoolchain"
+                // , "--add-modules jnr.enxio"
+                // , "-cp", "jnr-enxio-0.19.jar"
+                // , "--add-modules", "ALL-MODULE-PATH",
+                // , "--module-path", classpath.asPath
+            ) /* + moduleJvmArgs + patchModule */)
+            println("Args for for ${name} are ${options.allCompilerArgs}")
+        }
     }
     wrapper {
         distributionType = Wrapper.DistributionType.ALL
@@ -99,9 +110,11 @@ tasks {
         manifest {
             attributes(
                 mapOf(
-                    "Main-Class" to "com.github.aanno.imap2signal.MailFetch"
+                    "Main-Class" to "com.github.aanno.imap2signal.MailFetch",
                     // "Main-Class" to application.mainClassName
                     // "Class-Path" to configurations.compile.collect { it.getName() }.join(' ')
+                    "Class-Path" to configurations.runtimeClasspath
+                        .get().joinToString(";")
                 )
             )
         }
