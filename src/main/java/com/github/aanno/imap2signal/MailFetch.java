@@ -49,23 +49,16 @@ public class MailFetch implements AutoCloseable {
     public static void main(String[] args) throws Exception, EncapsulatedExceptions {
         long now = System.currentTimeMillis();
         try (MailFetch dut = new MailFetch()) {
+            // for tests
+            dut.setLastCheck(Long.MIN_VALUE);
             // List<MessageInfo> list = dut.getSubjectsOfNewMessages();
             SortedSet<MessageInfo> sortedSet = dut.getTestMessages();
             System.out.println("new messages: " + sortedSet.size());
             sortedSet = dut.filterOnLastCheck(now, sortedSet);
             System.out.println("messages after: " + sortedSet.size());
             Multimap<String, String> map = dut.binMessageInfos(sortedSet);
-            int entries = 0;
-            LOOP:
-            for (String ago : map.keys()) {
-                Collection<String> subjects = map.get(ago);
-                System.out.println(ago + ":");
-                for (String s : subjects) {
-                    System.out.println("\t" + s);
-                    ++entries;
-                    if (entries > MAX_ENTRIES) break LOOP;
-                }
-            }
+            String message = dut.toMessage(map);
+            System.out.println(message);
             // dut.sendWithSignal(sortedSet.stream().collect(Collectors.joining("\n")));
             dut.setLastCheck(now);
         }
@@ -85,11 +78,27 @@ public class MailFetch implements AutoCloseable {
 
     public SortedSet<MessageInfo> getTestMessages() {
         SortedSet<MessageInfo> result = new TreeSet<>();
-        result.add(new MessageInfo(Instant.parse("2014-12-12T10:39:40Z"), "hello"));
-        result.add(new MessageInfo(Instant.parse("2016-12-12T10:39:40Z"), "hello"));
-        result.add(new MessageInfo(Instant.parse("2018-01-12T10:39:40Z"), "hello"));
-        result.add(new MessageInfo(Instant.parse("2018-01-12T10:39:39Z"), "hello"));
+        result.add(new MessageInfo(Instant.parse("2014-12-12T10:39:40Z"), "hello 1"));
+        result.add(new MessageInfo(Instant.parse("2016-12-12T10:39:40Z"), "hello 2"));
+        result.add(new MessageInfo(Instant.parse("2018-01-12T10:39:40Z"), "hello 3"));
+        result.add(new MessageInfo(Instant.parse("2018-01-12T10:39:39Z"), "hello 4"));
         return result;
+    }
+
+    private String toMessage(Multimap<String, String> map) {
+        StringBuilder result = new StringBuilder();
+        int entries = 0;
+        LOOP:
+        for (String ago : map.keySet()) {
+            Collection<String> subjects = map.get(ago);
+            result.append(ago).append(":\n");
+            for (String s : subjects) {
+                result.append("\t").append(s).append("\n");
+                ++entries;
+                if (entries > MAX_ENTRIES) break LOOP;
+            }
+        }
+        return result.toString();
     }
 
     public SortedSet<MessageInfo> getSubjectsOfNewMessages() throws MessagingException, IOException {
@@ -122,7 +131,7 @@ public class MailFetch implements AutoCloseable {
     }
 
     private Multimap<String, String> binMessageInfos(SortedSet<MessageInfo> messages) {
-        Multimap<String, String> result = MultimapBuilder.treeKeys().arrayListValues().build();
+        Multimap<String, String> result = MultimapBuilder.treeKeys().treeSetValues().build();
         for (MessageInfo m : messages) {
             result.put(TimeAgo.using(m.getTimeInMillis()), m.getSubject());
         }
