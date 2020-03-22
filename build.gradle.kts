@@ -27,6 +27,9 @@ dependencies {
     api("com.github.bdeneuter", "dbus-java", "2.7")
     api("org.bouncycastle", "bcprov-jdk15on", "1.64")
 
+    api("com.github.marlonlom", "timeago", "4.0.1")
+    api("com.google.guava", "guava", "28.2-jre")
+
     runtimeOnly("org.slf4j", "slf4j-jdk14", "1.7.0")
 
     // testApi("junit", "junit", "4.12")

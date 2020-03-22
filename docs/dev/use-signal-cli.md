@@ -8,14 +8,19 @@
 * https://mark.benschop.me/blog/?p=122
 
 ```bash
-$ gradle run -PappArgs="['link']"
+$ gradle run -PappArgs="['link', '-n', '<name of device>']"
 > Task :run
 tsdevice:/?uuid=BNj_YoA2E3MsxTmTtQvJSw&pub_key=BWpoUXmlzL4qhYCNmnI4U8OQ9Qmlj3aLN1kAc11NOjYi
 
-$ qrencode -t png -o qr.png tsdevice:/?uuid=BNj_YoA2E3MsxTmTtQvJSw&pub_key=BWpoUXmlzL4qhYCNmnI4U8OQ9Qmlj3aLN1kAc11NOjYi
+$ qrencode -t png -o qr.png 'tsdevice:/?uuid=BNj_YoA2E3MsxTmTtQvJSw&pub_key=BWpoUXmlzL4qhYCNmnI4U8OQ9Qmlj3aLN1kAc11NOjYi'
 ```
 
-Does not work: [link bug](https://github.com/AsamK/signal-cli/issues/277)
+Display the qr-code with an image viewer and scan it with the (mobile) signal app. If the 
+'master decive' is `signal-cli` you could use the uri directly like this:
+
+```bash
+$ gradle run -PappArgs="['-u', '+49*******', 'addDevice', '--uri', 'tsdevice:/?uuid=UPTuGon*******&pub_key=BRL%2BslGfVmtF%2F3pBwdlVJz*************']"
+```
 
 ## Setup an old POTS device
 

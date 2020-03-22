@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="GmailFetch" type="Application" factoryName="Application" nameIsGenerated="true">
-    <option name="MAIN_CLASS_NAME" value="com.github.aanno.imap2signal.GmailFetch" />
+  <configuration default="false" name="MailFetch" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="com.github.aanno.imap2signal.MailFetch" />
     <module name="imap2signal-gateway.main" />
     <extension name="coverage">
       <pattern>

@@ -1,5 +1,9 @@
 package com.github.aanno.imap2signal;
 
+import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
+import com.github.marlonlom.utilities.timeago.TimeAgo;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import org.asamk.Signal;
 import org.asamk.signal.manager.Manager;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -17,22 +21,24 @@ import javax.mail.Store;
 import javax.mail.search.FlagTerm;
 import java.io.IOException;
 import java.security.Security;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
-import java.util.stream.Collectors;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.*;
+import java.util.prefs.Preferences;
 
 /**
  * https://stackoverflow.com/questions/28689099/javamail-reading-recent-unread-mails-using-imap
  */
-public class GmailFetch implements AutoCloseable {
+public class MailFetch implements AutoCloseable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(GmailFetch.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MailFetch.class);
+
+    private static final int MAX_ENTRIES = 40;
 
     private static final String KEYRING_COLLECTION_NAME = "imap2signal";
     private static final String KEYRING_COLLECTION_SECRET = "secret";
+    private static final String PREFERENCES_LAST_LOOKUP = "timeMillisOfLastCheck";
 
     private static final String SIGNAL_CONFIG_DIR = ".local/share/signal-cli";
 
@@ -41,36 +47,53 @@ public class GmailFetch implements AutoCloseable {
     private static final String SIGNAL_RECIPIENTS = "recipient";
 
     public static void main(String[] args) throws Exception, EncapsulatedExceptions {
-        try (GmailFetch dut = new GmailFetch()) {
-            List<String> list = dut.getSubjectsOfNewMessages();
-            // List<String> list = dut.getTestMessages();
-            if (list.size() >= 40) {
-                list = list.subList(0, 40);
+        long now = System.currentTimeMillis();
+        try (MailFetch dut = new MailFetch()) {
+            // List<MessageInfo> list = dut.getSubjectsOfNewMessages();
+            SortedSet<MessageInfo> sortedSet = dut.getTestMessages();
+            System.out.println("new messages: " + sortedSet.size());
+            sortedSet = dut.filterOnLastCheck(now, sortedSet);
+            System.out.println("messages after: " + sortedSet.size());
+            Multimap<String, String> map = dut.binMessageInfos(sortedSet);
+            int entries = 0;
+            LOOP:
+            for (String ago : map.keys()) {
+                Collection<String> subjects = map.get(ago);
+                System.out.println(ago + ":");
+                for (String s : subjects) {
+                    System.out.println("\t" + s);
+                    ++entries;
+                    if (entries > MAX_ENTRIES) break LOOP;
+                }
             }
-            for (String s : list) {
-                System.out.println(s);
-            }
-            dut.sendWithSignal(list.stream().collect(Collectors.joining("\n")));
+            // dut.sendWithSignal(sortedSet.stream().collect(Collectors.joining("\n")));
+            dut.setLastCheck(now);
         }
     }
 
+    private Preferences prefs;
     private Session session;
     private SimpleCollection collection;
     private Signal manager;
 
-    public GmailFetch() {
-        Security.addProvider(new BouncyCastleProvider());
+    public MailFetch() {
+        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
+            Security.addProvider(new BouncyCastleProvider());
+        }
+        prefs = Preferences.userRoot().node(KEYRING_COLLECTION_NAME);
     }
 
-    public List<String> getTestMessages() {
-        List<String> result = new ArrayList<>();
-        result.add("hello");
-        result.add("world");
+    public SortedSet<MessageInfo> getTestMessages() {
+        SortedSet<MessageInfo> result = new TreeSet<>();
+        result.add(new MessageInfo(Instant.parse("2014-12-12T10:39:40Z"), "hello"));
+        result.add(new MessageInfo(Instant.parse("2016-12-12T10:39:40Z"), "hello"));
+        result.add(new MessageInfo(Instant.parse("2018-01-12T10:39:40Z"), "hello"));
+        result.add(new MessageInfo(Instant.parse("2018-01-12T10:39:39Z"), "hello"));
         return result;
     }
 
-    public List<String> getSubjectsOfNewMessages() throws MessagingException, IOException {
-        List result = new ArrayList();
+    public SortedSet<MessageInfo> getSubjectsOfNewMessages() throws MessagingException, IOException {
+        SortedSet<MessageInfo> result = new TreeSet<>();
         if (session == null) {
             session = Session.getDefaultInstance(new Properties());
         }
@@ -83,19 +106,25 @@ public class GmailFetch implements AutoCloseable {
         Message[] messages = inbox.search(
                 new FlagTerm(new Flags(Flags.Flag.SEEN), false));
 
-        // Sort messages from recent to oldest
-        Arrays.sort(messages, (m1, m2) -> {
-            try {
-                return m2.getSentDate().compareTo(m1.getSentDate());
-            } catch (MessagingException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
         for (Message message : messages) {
-            result.add(
-                    "sendDate: " + message.getSentDate()
-                            + " subject:" + message.getSubject());
+            result.add(new MessageInfo(message.getSentDate().getTime(), message.getSubject()));
+        }
+        return result;
+    }
+
+    private SortedSet<MessageInfo> filterOnLastCheck(long now, SortedSet<MessageInfo> sortedList) {
+        long lastCheck = prefs.getLong(PREFERENCES_LAST_LOOKUP, Long.MIN_VALUE);
+        return sortedList.headSet(new MessageInfo(lastCheck, ""));
+    }
+
+    private void setLastCheck(long now) {
+        prefs.putLong(PREFERENCES_LAST_LOOKUP, now);
+    }
+
+    private Multimap<String, String> binMessageInfos(SortedSet<MessageInfo> messages) {
+        Multimap<String, String> result = MultimapBuilder.treeKeys().arrayListValues().build();
+        for (MessageInfo m : messages) {
+            result.put(TimeAgo.using(m.getTimeInMillis()), m.getSubject());
         }
         return result;
     }
@@ -134,5 +163,7 @@ public class GmailFetch implements AutoCloseable {
         if (collection != null) {
             collection.close();
         }
+        session = null;
+        manager = null;
     }
 }
