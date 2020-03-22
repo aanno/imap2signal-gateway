@@ -1,10 +1,18 @@
 val javaVersion = "11"
 
 plugins {
+    // id("org.javamodularity.moduleplugin") version "1.6.0"
     java
     idea
     eclipse
     kotlin("jvm") version "1.3.70"
+    publishing
+    `java-library-distribution`
+
+    // Plugin which checks for dependency updates with help/dependencyUpdates task.
+    id("com.github.ben-manes.versions") version "0.28.0"
+    // Plugin which can update Gradle dependencies, use help/useLatestVersions
+    id("se.patrikerdes.use-latest-versions") version "0.2.13"
 }
 
 group = "com.github.aanno.imap2signal"
@@ -95,3 +103,9 @@ tasks {
         add("archives", javadocJar)
     }
 }
+
+/*
+tasks.named("build") {
+    dependsOn("distTar")
+}
+*/
