@@ -63,7 +63,7 @@ public class MailFetch implements AutoCloseable {
             System.out.println("new messages: " + sortedSet.size());
             sortedSet = dut.filterOnLastCheck(now, sortedSet);
             System.out.println("messages after: " + sortedSet.size());
-            Multimap<String, String> map = dut.binMessageInfos(sortedSet);
+            Multimap<HumanRelativeDate, String> map = dut.binMessageInfos(sortedSet);
             String message = dut.toMessage(map);
             LOG.info("send\n:" + message);
             if (!testOnly) {
@@ -100,13 +100,13 @@ public class MailFetch implements AutoCloseable {
         return result;
     }
 
-    private String toMessage(Multimap<String, String> map) {
+    private String toMessage(Multimap<HumanRelativeDate, String> map) {
         StringBuilder result = new StringBuilder();
         int entries = 0;
         LOOP:
-        for (String ago : map.keySet()) {
+        for (HumanRelativeDate ago : map.keySet()) {
             Collection<String> subjects = map.get(ago);
-            result.append(ago).append(":\n");
+            result.append(ago.getHumanDate()).append(":\n");
             for (String s : subjects) {
                 result.append("\t").append(s).append("\n");
                 ++entries;
@@ -147,10 +147,10 @@ public class MailFetch implements AutoCloseable {
         prefs.putLong(PREFERENCES_LAST_LOOKUP, now);
     }
 
-    private Multimap<String, String> binMessageInfos(SortedSet<MessageInfo> messages) {
-        Multimap<String, String> result = MultimapBuilder.treeKeys().treeSetValues().build();
+    private Multimap<HumanRelativeDate, String> binMessageInfos(SortedSet<MessageInfo> messages) {
+        Multimap<HumanRelativeDate, String> result = MultimapBuilder.treeKeys().treeSetValues().build();
         for (MessageInfo m : messages) {
-            result.put(TimeAgo.using(m.getTimeInMillis()), m.getSubject());
+            result.put(new HumanRelativeDate(m.getTimeInMillis()), m.getSubject());
         }
         return result;
     }
