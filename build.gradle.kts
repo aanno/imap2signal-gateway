@@ -2,11 +2,11 @@ val javaVersion = "11"
 
 plugins {
     // id("org.javamodularity.moduleplugin") version "1.6.0"
-    java
+    `java-library`
+    `maven-publish`
     idea
     eclipse
     kotlin("jvm") version "1.3.70"
-    publishing
     `java-library-distribution`
 
     // Plugin which checks for dependency updates with help/dependencyUpdates task.
@@ -44,13 +44,18 @@ dependencies {
 
     // JUnit 5
     testImplementation("org.junit.jupiter", "junit-jupiter-api", "5.3.1")
-    testRuntimeOnly("org.junit.jupiter", "junit-jupiter-engine" , "5.3.1")
+    testRuntimeOnly("org.junit.jupiter", "junit-jupiter-engine", "5.3.1")
     testRuntimeOnly("org.junit.platform", "junit-platform-console", "1.6.0")
 
     // Kotlintest
     testImplementation("io.kotlintest", "kotlintest-core", "3.4.2")
     testImplementation("io.kotlintest", "kotlintest-assertions", "3.4.2")
     testImplementation("io.kotlintest", "kotlintest-runner-junit5", "3.4.2")
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 idea {
@@ -71,6 +76,9 @@ configure<JavaPluginConvention> {
     sourceCompatibility = JavaVersion.VERSION_11
 }
 tasks {
+    withType<Jar> {
+
+    }
     wrapper {
         distributionType = Wrapper.DistributionType.ALL
         version = "6.2.2"
@@ -87,22 +95,38 @@ tasks {
         useJUnitPlatform()
     }
 
-    // https://stackoverflow.com/questions/52596968/build-source-jar-with-gradle-kotlin-dsl
-    val sourcesJar by creating(Jar::class) {
-        dependsOn(JavaPlugin.CLASSES_TASK_NAME)
-        classifier = "sources"
-        from(sourceSets["main"].allSource)
-    }
-    val javadocJar by creating(Jar::class) {
-        dependsOn(JavaPlugin.JAVADOC_TASK_NAME)
-        classifier = "javadoc"
-        from(javadoc)
-    }
-    artifacts {
-        add("archives", sourcesJar)
-        add("archives", javadocJar)
+    jar {
+        manifest {
+            attributes(
+                mapOf(
+                    "Main-Class" to "com.github.aanno.imap2signal.MailFetch"
+                    // "Main-Class" to application.mainClassName
+                    // "Class-Path" to configurations.compile.collect { it.getName() }.join(' ')
+                )
+            )
+        }
+
+        dependsOn("generatePomFileForMavenPublication")
+        // from("$buildDir/publications/maven/pom-default.xml")
+        // into("META-INF/maven/${group}/${name}")
+
+        into("META-INF/maven/${project.group}/${project.name}") {
+            from("$buildDir/publications/maven/pom-default.xml")
+            rename(".*", "pom.xml")
+        }
     }
 }
+
+
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
+
 
 /*
 tasks.named("build") {
