@@ -6,6 +6,8 @@ import com.google.common.collect.MultimapBuilder;
 import org.asamk.Signal;
 import org.asamk.signal.manager.Manager;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.freedesktop.dbus.DBusConnection;
+import org.freedesktop.dbus.exceptions.DBusException;
 import org.freedesktop.secret.simple.SimpleCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,13 +80,15 @@ public class MailFetch implements AutoCloseable {
     private Session session;
     private SimpleCollection collection;
     private Signal manager;
+    private DBusConnection dBusConnection;
 
-    public MailFetch(boolean testOnly) {
+    public MailFetch(boolean testOnly) throws DBusException {
         this.testOnly = testOnly;
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
             Security.addProvider(new BouncyCastleProvider());
         }
         prefs = Preferences.userRoot().node(KEYRING_COLLECTION_NAME);
+        dBusConnection = DBusConnection.getConnection(DBusConnection.SESSION);
     }
 
     public SortedSet<MessageInfo> getTestMessages() {
@@ -184,6 +188,9 @@ public class MailFetch implements AutoCloseable {
     public void close() {
         if (collection != null) {
             collection.close();
+        }
+        if (dBusConnection != null) {
+            dBusConnection.disconnect();
         }
         session = null;
         manager = null;
