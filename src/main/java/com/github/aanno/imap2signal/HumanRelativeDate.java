@@ -8,20 +8,20 @@ import java.util.StringJoiner;
 
 public final class HumanRelativeDate implements Comparable<HumanRelativeDate> {
 
-    private final long timeMillis;
+    private final long timeInMillis;
     private final String humanDate;
 
-    public HumanRelativeDate(long timeMillis, String humanDate) {
-        this.timeMillis = timeMillis;
+    public HumanRelativeDate(long timeInMillis, String humanDate) {
+        this.timeInMillis = timeInMillis;
         this.humanDate = humanDate;
     }
 
-    public HumanRelativeDate(long timeMillis) {
-        this(timeMillis, TimeAgo.using(timeMillis));
+    public HumanRelativeDate(long timeInMillis) {
+        this(timeInMillis, TimeAgo.using(timeInMillis));
     }
 
-    public long getTimeMillis() {
-        return timeMillis;
+    public long getTimeInMillis() {
+        return timeInMillis;
     }
 
     public String getHumanDate() {
@@ -33,26 +33,26 @@ public final class HumanRelativeDate implements Comparable<HumanRelativeDate> {
         if (this == o) return true;
         if (!(o instanceof HumanRelativeDate)) return false;
         HumanRelativeDate that = (HumanRelativeDate) o;
-        return timeMillis == that.timeMillis &&
+        return timeInMillis == that.timeInMillis &&
                 humanDate.equals(that.humanDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(timeMillis, humanDate);
+        return Objects.hash(timeInMillis, humanDate);
     }
 
     @Override
     public int compareTo(@Nonnull HumanRelativeDate o) {
         // reverse on purpose: Newest messages first!
-        int result = Long.compare(o.timeMillis, timeMillis);
+        int result = Long.compare(o.timeInMillis, timeInMillis);
         return result;
     }
 
     @Override
     public String toString() {
         return new StringJoiner(", ", HumanRelativeDate.class.getSimpleName() + "[", "]")
-                .add("timeMillis=" + timeMillis)
+                .add("timeMillis=" + timeInMillis)
                 .add("humanDate='" + humanDate + "'")
                 .toString();
     }
