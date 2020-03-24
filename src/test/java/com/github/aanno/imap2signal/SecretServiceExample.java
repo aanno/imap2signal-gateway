@@ -47,7 +47,7 @@ public class SecretServiceExample {
     public void createPasswordWithAttributes() throws IOException {
         try (SimpleCollection collection = new SimpleCollection("My Collection", "super secret")) {
             // define unique attributes
-            Map<String, String> attributes = new HashMap();
+            Map<String, String> attributes = new HashMap<>();
             attributes.put("uuid", "42");
 
             // create and forget
