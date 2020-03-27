@@ -1,5 +1,7 @@
 package com.github.aanno.imap2signal;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.annotation.Nonnull;
 import javax.mail.Address;
 import javax.mail.Message;
@@ -9,7 +11,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.StringJoiner;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public final class MessageInfo implements Comparable<MessageInfo> {
 
@@ -17,13 +22,13 @@ public final class MessageInfo implements Comparable<MessageInfo> {
 
     private final String subject;
 
-    private final Address from;
+    private final SimpleMailAddress from;
 
-    private final Address replyTo;
+    private final SimpleMailAddress replyTo;
 
-    private final List<Address> tos = new ArrayList<>();
+    private final Set<SimpleMailAddress> tos = new TreeSet<>();
 
-    private final List<Address> ccs = new ArrayList<>();
+    private final Set<SimpleMailAddress> ccs = new TreeSet<>();
 
     private static Address addressOrNull(Address[] addresses) {
         if (addresses == null || addresses.length == 0) {
@@ -39,10 +44,10 @@ public final class MessageInfo implements Comparable<MessageInfo> {
                        List<Address> tos, List<Address> ccs) {
         this.timeInMillis = timeInMillis;
         this.subject = subject;
-        this.from = from;
-        this.replyTo = replyTo;
-        this.tos.addAll(tos);
-        this.ccs.addAll(ccs);
+        this.from = SimpleMailAddress.from(from);
+        this.replyTo = SimpleMailAddress.from(replyTo);
+        this.tos.addAll(tos.stream().map(SimpleMailAddress::from).collect(Collectors.toList()));
+        this.ccs.addAll(ccs.stream().map(SimpleMailAddress::from).collect(Collectors.toList()));
     }
 
     public MessageInfo(Instant instant, String subject, Address from, Address replyTo,
@@ -66,22 +71,53 @@ public final class MessageInfo implements Comparable<MessageInfo> {
         return subject;
     }
 
+    public SimpleMailAddress getFrom() {
+        return from;
+    }
+
+    public SimpleMailAddress getReplyTo() {
+        return replyTo;
+    }
+
+    public Set<SimpleMailAddress> getTos() {
+        return tos;
+    }
+
+    public Set<SimpleMailAddress> getCcs() {
+        return ccs;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof MessageInfo)) return false;
         MessageInfo that = (MessageInfo) o;
         return timeInMillis == that.timeInMillis &&
-                subject.equals(that.subject);
+                Objects.equals(subject, that.subject) &&
+                Objects.equals(from, that.from) &&
+                Objects.equals(replyTo, that.replyTo) &&
+                tos.equals(that.tos) &&
+                ccs.equals(that.ccs);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(timeInMillis, subject);
+        return Objects.hash(timeInMillis, subject, from, replyTo, tos, ccs);
     }
 
     @Override
-    public int compareTo(@Nonnull MessageInfo o) {
+    public String toString() {
+        return new StringJoiner(", ", MessageInfo.class.getSimpleName() + "[", "]")
+                .add("subject='" + subject + "'")
+                .add("from=" + from)
+                .add("replyTo=" + replyTo)
+                .add("tos=" + tos)
+                .add("ccs=" + ccs)
+                .toString();
+    }
+
+    @Override
+    public int compareTo(@NotNull MessageInfo o) {
         // reverse on purpose: Newest messages first!
         int result = Long.compare(o.timeInMillis, timeInMillis);
         if (result == 0) {
@@ -89,13 +125,4 @@ public final class MessageInfo implements Comparable<MessageInfo> {
         }
         return result;
     }
-
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", MessageInfo.class.getSimpleName() + "[", "]")
-                .add("timeInMillis=" + timeInMillis)
-                .add("subject='" + subject + "'")
-                .toString();
-    }
-
 }

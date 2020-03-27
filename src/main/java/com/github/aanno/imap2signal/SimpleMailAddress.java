@@ -5,11 +5,19 @@ import org.hazlewood.connor.bottema.emailaddress.EmailAddressParser;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
+import javax.mail.Address;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.StringJoiner;
 
 public final class SimpleMailAddress implements Comparable<SimpleMailAddress> {
+
+    public static SimpleMailAddress from(Address address) {
+        if (address == null) {
+            return null;
+        }
+        return new SimpleMailAddress(address.toString());
+    }
 
     private final String localPart;
 
