@@ -1,7 +1,5 @@
 package com.github.aanno.imap2signal;
 
-import org.jetbrains.annotations.NotNull;
-
 import javax.annotation.Nonnull;
 import javax.mail.Address;
 import javax.mail.Message;
@@ -117,7 +115,7 @@ public final class MessageInfo implements Comparable<MessageInfo> {
     }
 
     @Override
-    public int compareTo(@NotNull MessageInfo o) {
+    public int compareTo(@Nonnull MessageInfo o) {
         // reverse on purpose: Newest messages first!
         int result = Long.compare(o.timeInMillis, timeInMillis);
         if (result == 0) {

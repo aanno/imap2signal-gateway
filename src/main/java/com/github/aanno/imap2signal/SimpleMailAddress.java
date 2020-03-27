@@ -2,7 +2,6 @@ package com.github.aanno.imap2signal;
 
 import org.hazlewood.connor.bottema.emailaddress.EmailAddressCriteria;
 import org.hazlewood.connor.bottema.emailaddress.EmailAddressParser;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.mail.Address;
@@ -60,7 +59,7 @@ public final class SimpleMailAddress implements Comparable<SimpleMailAddress> {
     }
 
     @Override
-    public int compareTo(@NotNull SimpleMailAddress o) {
+    public int compareTo(@Nonnull SimpleMailAddress o) {
         int result = domain.compareTo(o.domain);
         if (result == 0) {
             result = localPart.compareTo(o.localPart);
