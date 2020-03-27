@@ -25,6 +25,16 @@ public final class MessageInfo implements Comparable<MessageInfo> {
 
     private final List<Address> ccs = new ArrayList<>();
 
+    private static Address addressOrNull(Address[] addresses) {
+        if (addresses == null || addresses.length == 0) {
+            return null;
+        }
+        if (addresses.length > 1) {
+            throw new IllegalArgumentException("" + Arrays.asList(addresses));
+        }
+        return addresses[0];
+    }
+
     public MessageInfo(long timeInMillis, String subject, Address from, Address replyTo,
                        List<Address> tos, List<Address> ccs) {
         this.timeInMillis = timeInMillis;
@@ -41,7 +51,9 @@ public final class MessageInfo implements Comparable<MessageInfo> {
     }
 
     public MessageInfo(Message message) throws MessagingException {
-        this(message.getSentDate().getTime(), message.getSubject(), message.getFrom()[0], message.getReplyTo()[0],
+        this(message.getSentDate().getTime(), message.getSubject(),
+                addressOrNull(message.getFrom()),
+                addressOrNull(message.getReplyTo()),
                 Arrays.asList(message.getRecipients(Message.RecipientType.TO)),
                 Arrays.asList(message.getRecipients(Message.RecipientType.CC)));
     }
