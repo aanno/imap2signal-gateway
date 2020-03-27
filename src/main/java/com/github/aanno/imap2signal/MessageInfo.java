@@ -7,6 +7,7 @@ import javax.mail.MessagingException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -32,10 +33,19 @@ public final class MessageInfo implements Comparable<MessageInfo> {
         if (addresses == null || addresses.length == 0) {
             return null;
         }
+        /* could be more
         if (addresses.length > 1) {
             throw new IllegalArgumentException("" + Arrays.asList(addresses));
         }
+         */
         return addresses[0];
+    }
+
+    private static List<Address> addressListOrEmpty(Address[] addresses) {
+        if (addresses == null || addresses.length == 0) {
+            return Collections.emptyList();
+        }
+        return Arrays.asList(addresses);
     }
 
     public MessageInfo(long timeInMillis, String subject, Address from, Address replyTo,
@@ -57,8 +67,8 @@ public final class MessageInfo implements Comparable<MessageInfo> {
         this(message.getSentDate().getTime(), message.getSubject(),
                 addressOrNull(message.getFrom()),
                 addressOrNull(message.getReplyTo()),
-                Arrays.asList(message.getRecipients(Message.RecipientType.TO)),
-                Arrays.asList(message.getRecipients(Message.RecipientType.CC)));
+                addressListOrEmpty(message.getRecipients(Message.RecipientType.TO)),
+                addressListOrEmpty(message.getRecipients(Message.RecipientType.CC)));
     }
 
     public long getTimeInMillis() {

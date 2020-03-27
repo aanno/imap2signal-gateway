@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.prefs.Preferences;
 
 /**
@@ -88,7 +89,24 @@ public class MailFetch implements AutoCloseable {
         // OkHttp3 hangs on Http2: This will be fixed (only) in OkHttp3 version 4.5.1-RC1, see
         // https://github.com/square/okhttp/issues/5832
         // https://github.com/square/okhttp/issues/4029
-        System.exit(0);
+        try {
+            System.exit(0);
+        } catch (RejectedExecutionException e) {
+            // do nothing, because of
+            /*
+            SimpleCollection -> TransportEncryption -> DBusConnection missing .close
+            as SimpleCollection.close() only clear(), but not close the connection
+
+            Exception in thread "DBusConnection" java.util.concurrent.RejectedExecutionException: Task org.freedesktop.dbus.connections.AbstractConnection$1@7682e526 rejected from java.util.concurrent.ThreadPoolExecutor@710fe758[Terminated, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 32]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$AbortPolicy.rejectedExecution(ThreadPoolExecutor.java:2055)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.reject(ThreadPoolExecutor.java:825)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.execute(ThreadPoolExecutor.java:1355)
+	at org.freedesktop.dbus.connections.AbstractConnection.sendMessage(AbstractConnection.java:317)
+	at org.freedesktop.dbus.connections.AbstractConnection.handleMessage(AbstractConnection.java:959)
+	at org.freedesktop.dbus.connections.AbstractConnection.handleMessage(AbstractConnection.java:619)
+	at org.freedesktop.dbus.connections.IncomingMessageThread.run(IncomingMessageThread.java:43)
+            */
+        }
     }
 
     private static class MyAddress extends Address {
@@ -282,6 +300,7 @@ public class MailFetch implements AutoCloseable {
     @Override
     public void close() {
         if (collection != null) {
+            // TODO tp: Bug in close
             collection.close();
         }
         session = null;
