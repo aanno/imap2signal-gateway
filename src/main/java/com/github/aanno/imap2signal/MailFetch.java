@@ -1,6 +1,5 @@
 package com.github.aanno.imap2signal;
 
-import com.github.marlonlom.utilities.timeago.TimeAgo;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import org.asamk.Signal;
@@ -11,12 +10,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.whispersystems.signalservice.api.push.exceptions.EncapsulatedExceptions;
 
-import javax.mail.*;
+import javax.mail.Address;
+import javax.mail.Flags;
+import javax.mail.Folder;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Store;
 import javax.mail.search.FlagTerm;
 import java.io.IOException;
 import java.security.Security;
 import java.time.Instant;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Properties;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.prefs.Preferences;
 
 /**
@@ -74,10 +83,45 @@ public class MailFetch implements AutoCloseable {
                 }
             }
         }
+        // We need a grace period before exit for DBus connection to stop
+        Thread.sleep(2000);
         // OkHttp3 hangs on Http2: This will be fixed (only) in OkHttp3 version 4.5.1-RC1, see
         // https://github.com/square/okhttp/issues/5832
         // https://github.com/square/okhttp/issues/4029
         System.exit(0);
+    }
+
+    private static class MyAddress extends Address {
+
+        private String addr;
+
+        MyAddress(String addr) {
+            this.addr = addr;
+        }
+
+        @Override
+        public String getType() {
+            return "MyAddress";
+        }
+
+        @Override
+        public String toString() {
+            return addr;
+        }
+
+        @Override
+        public int hashCode() {
+            return addr.hashCode() * 3 + 31;
+        }
+
+        @Override
+        public boolean equals(Object address) {
+            if (!(address instanceof  Address)) {
+                return false;
+            }
+            Address other = (Address) address;
+            return toString().equals(other.toString());
+        }
     }
 
     private final boolean testOnly;
@@ -94,13 +138,29 @@ public class MailFetch implements AutoCloseable {
         prefs = Preferences.userRoot().node(KEYRING_COLLECTION_NAME);
     }
 
+
     public SortedSet<MessageInfo> getTestMessages() {
         SortedSet<MessageInfo> result = new TreeSet<>();
-        result.add(new MessageInfo(Instant.parse("2014-12-12T10:39:40Z"), "hello 1"));
-        result.add(new MessageInfo(Instant.parse("2016-12-12T10:39:40Z"), "hello 2"));
-        result.add(new MessageInfo(Instant.parse("2018-01-12T10:39:40Z"), "hello 3"));
-        result.add(new MessageInfo(Instant.parse("2018-01-12T10:39:39Z"), "hello 4"));
+        result.add(getTestMessageInfo("2014-12-12T10:39:40Z", "hello 1",
+                "my@tiger.cx", "tp@myplace.de"));
+        result.add(getTestMessageInfo("2016-12-12T10:39:40Z", "hello 2",
+                "myme@tiger.cx", "tp@myplace.de"));
+        result.add(getTestMessageInfo("2018-01-12T10:39:40Z", "hello 3",
+                "my@tiger.cx", "tp@myplace.de"));
+        result.add(getTestMessageInfo("2018-01-12T10:39:39Z", "hello 4",
+                "my@tiger.cx", "tp@myplace.de"));
         return result;
+    }
+
+    private MessageInfo getTestMessageInfo(String date, String subject, String from, String tos) {
+        return getTestMessageInfo(Instant.parse(date).toEpochMilli(), subject, from, tos);
+    }
+
+    private MessageInfo getTestMessageInfo(long epochMilli, String subject, String from, String tos) {
+        MyAddress fromAddr = new MyAddress(from);
+        MyAddress toAddr = new MyAddress(tos);
+        return new MessageInfo(epochMilli, subject, fromAddr, fromAddr,
+                Collections.singletonList(toAddr), Collections.emptyList());
     }
 
     private String toMessage(Multimap<HumanRelativeDate, String> map) {
@@ -160,14 +220,22 @@ public class MailFetch implements AutoCloseable {
                 new FlagTerm(new Flags(Flags.Flag.SEEN), false));
 
         for (Message message : messages) {
-            result.add(new MessageInfo(message.getSentDate().getTime(), message.getSubject()));
+            /*
+            message.getAllRecipients();
+            message.getRecipients(Message.RecipientType.CC);
+            message.getSentDate();
+            message.getReplyTo();
+            message.getFrom();
+             */
+            result.add(new MessageInfo(message));
         }
         return result;
     }
 
     private SortedSet<MessageInfo> filterOnLastCheck(long now, SortedSet<MessageInfo> sortedList) {
         long lastCheck = prefs.getLong(PREFERENCES_LAST_LOOKUP, Long.MIN_VALUE);
-        return sortedList.headSet(new MessageInfo(lastCheck, ""));
+        return sortedList.headSet(getTestMessageInfo(lastCheck, "",
+                "local@domain.com", "local@domain.com"));
     }
 
     private void setLastCheck(long now) {

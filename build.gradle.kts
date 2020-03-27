@@ -43,6 +43,9 @@ dependencies {
     api("com.google.guava", "guava", "28.2-jre")
     api("com.google.code.findbugs", "jsr305", "3.0.2")
 
+    // https://github.com/bbottema/email-rfc2822-validator
+    implementation("com.github.bbottema", "emailaddress-rfc2822", "2.1.4")
+
     runtimeOnly("org.slf4j", "slf4j-jdk14", "1.7.0")
 
     // testApi("junit", "junit", "4.12")
@@ -85,7 +88,7 @@ tasks {
         doFirst {
             options.compilerArgs.addAll(listOf(
                 "--release", "11",
-                "-deprecation", "-Xlint:all"
+                "-deprecation", "-Xlint:all,-serial"
                 // "--add-exports=java.xml/com.sun.org.apache.xerces.internal.parsers=com.github.aanno.dbtoolchain"
                 // , "--add-modules jnr.enxio"
                 // , "-cp", "jnr-enxio-0.19.jar"
