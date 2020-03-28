@@ -20,9 +20,11 @@ import javax.mail.Store;
 import javax.mail.search.FlagTerm;
 import java.io.IOException;
 import java.security.Security;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -58,7 +60,8 @@ public class MailFetch implements AutoCloseable {
         if ("test".equals(mailAccount)) {
             testOnly = true;
         }
-        LOG.info("mail account: " + mailAccount + " testOnly: " + testOnly);
+        SimpleMailAddress myMailAddr = new SimpleMailAddress(mailAccount);
+        LOG.info("mail account: " + myMailAddr + " testOnly: " + testOnly);
         long now = System.currentTimeMillis();
         try (MailFetch dut = new MailFetch(testOnly)) {
             if (testOnly) {
@@ -69,18 +72,18 @@ public class MailFetch implements AutoCloseable {
             if (testOnly) {
                 sortedSet = dut.getTestMessages();
             } else {
-                sortedSet = dut.getSubjectsOfNewMessages(mailAccount);
+                sortedSet = dut.getSubjectsOfNewMessages(myMailAddr);
             }
             System.out.println("new messages: " + sortedSet.size());
-            sortedSet = dut.filterOnLastCheck(now, sortedSet);
-            System.out.println("messages after: " + sortedSet.size());
+            // sortedSet = dut.filterOnLastCheck(now, sortedSet);
+            // System.out.println("messages after: " + sortedSet.size());
             if (!sortedSet.isEmpty()) {
-                Multimap<HumanRelativeDate, String> map = dut.binMessageInfos(sortedSet);
-                String message = dut.toMessage(map);
+                Multimap<HumanRelativeDate, MessageInfo> map = dut.binMessageInfos(sortedSet);
+                String message = dut.toMessage(map, myMailAddr);
                 LOG.info("send\n:" + message);
                 if (!testOnly) {
-                    dut.sendWithSignal(message);
-                    dut.setLastCheck(now);
+                    // dut.sendWithSignal(message);
+                    // dut.setLastCheck(now);
                 }
             }
         }
@@ -181,15 +184,44 @@ public class MailFetch implements AutoCloseable {
                 Collections.singletonList(toAddr), Collections.emptyList());
     }
 
-    private String toMessage(Multimap<HumanRelativeDate, String> map) {
+    private String toMessage(Multimap<HumanRelativeDate, MessageInfo> map, SimpleMailAddress myMailAddr) {
         StringBuilder result = new StringBuilder();
+        result.append(
+                SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT).format(new Date()))
+                .append("\n:");
         int entries = 0;
         LOOP:
         for (HumanRelativeDate ago : map.keySet()) {
-            Collection<String> subjects = map.get(ago);
+            Collection<MessageInfo> info = map.get(ago);
             result.append(ago.getHumanDate()).append(":\n");
-            for (String s : subjects) {
-                result.append("\t").append(s).append("\n");
+            for (MessageInfo mi : info) {
+                // sender
+                result.append(mi.getFrom());
+                if (mi.getReplyTo() != null && !mi.getReplyTo().equals(mi.getFrom())) {
+                    result.append("(").append(mi.getReplyTo()).append(")");
+                }
+                result.append(": ");
+                // subject
+                String s = mi.getSubject();
+                if (s.length() > 50) {
+                    s = s.substring(0, 47) + "...";
+                }
+                result.append("\t").append(s).append(" ");
+                // recipients
+                if (!mi.getTos().isEmpty()) {
+                    result.append("t").append(mi.getTos().size());
+                    if (mi.getTos().contains(myMailAddr)) {
+                        result.append("*");
+                    }
+                }
+                if (!mi.getCcs().isEmpty()) {
+                    result.append("c").append(mi.getCcs().size());
+                    if (mi.getCcs().contains(myMailAddr)) {
+                        result.append("*");
+                    }
+                }
+                // end line
+                result.append("\n");
                 ++entries;
                 if (entries > MAX_ENTRIES) break LOOP;
             }
@@ -197,15 +229,15 @@ public class MailFetch implements AutoCloseable {
         return result.toString();
     }
 
-    public SortedSet<MessageInfo> getSubjectsOfNewMessages(String mailAccount)
+    public SortedSet<MessageInfo> getSubjectsOfNewMessages(SimpleMailAddress mailAccount)
             throws MessagingException, IOException {
         SortedSet<MessageInfo> result = new TreeSet<>();
         if (session == null) {
             session = Session.getDefaultInstance(new Properties());
         }
         Store store = session.getStore("imaps");
-        String domain = mailAccount.substring(mailAccount.lastIndexOf("@") + 1);
-        String pw = new String(getPasswdFor(mailAccount));
+        String domain = mailAccount.getDomain();
+        String pw = new String(getPasswdFor(mailAccount.toString()));
         /*
         store.connect("imap.googlemail.com", 993, mailAccount,
                 new String(getPasswdFor(mailAccount)));
@@ -215,7 +247,7 @@ public class MailFetch implements AutoCloseable {
             String mailHost = sub + domain;
             LOG.info("imap connect: trying " + mailHost + " ...");
             try {
-                store.connect(mailHost, 993, mailAccount, pw);
+                store.connect(mailHost, 993, mailAccount.toString(), pw);
                 LOG.info("imap connected to " + mailHost);
                 last = null;
                 // using that ...
@@ -260,10 +292,10 @@ public class MailFetch implements AutoCloseable {
         prefs.putLong(PREFERENCES_LAST_LOOKUP, now);
     }
 
-    private Multimap<HumanRelativeDate, String> binMessageInfos(SortedSet<MessageInfo> messages) {
-        Multimap<HumanRelativeDate, String> result = MultimapBuilder.treeKeys().treeSetValues().build();
+    private Multimap<HumanRelativeDate, MessageInfo> binMessageInfos(SortedSet<MessageInfo> messages) {
+        Multimap<HumanRelativeDate, MessageInfo> result = MultimapBuilder.treeKeys().treeSetValues().build();
         for (MessageInfo m : messages) {
-            result.put(new HumanRelativeDate(m.getTimeInMillis()), m.getSubject());
+            result.put(new HumanRelativeDate(m.getTimeInMillis()), m);
         }
         return result;
     }

@@ -15,7 +15,18 @@ public final class SimpleMailAddress implements Comparable<SimpleMailAddress> {
         if (address == null) {
             return null;
         }
-        return new SimpleMailAddress(address.toString());
+        SimpleMailAddress result = new SimpleMailAddress(address.toString());
+        if (result.getLocalPart() == null || result.getDomain() == null) {
+            // fallback
+            String a = address.toString();
+            int first = a.indexOf("<");
+            int last = a.lastIndexOf(">");
+            int middle = a.lastIndexOf("@");
+            if (first >= 0 && first < middle && middle < last) {
+                result = new SimpleMailAddress(a.substring(first, middle), a.substring(middle + 1, last));
+            }
+        }
+        return result;
     }
 
     private final String localPart;
@@ -49,8 +60,8 @@ public final class SimpleMailAddress implements Comparable<SimpleMailAddress> {
         if (this == o) return true;
         if (!(o instanceof SimpleMailAddress)) return false;
         SimpleMailAddress that = (SimpleMailAddress) o;
-        return localPart.equals(that.localPart) &&
-                domain.equals(that.domain);
+        return Objects.equals(localPart, that.localPart) &&
+                Objects.equals(domain, that.domain);
     }
 
     @Override
@@ -60,8 +71,11 @@ public final class SimpleMailAddress implements Comparable<SimpleMailAddress> {
 
     @Override
     public int compareTo(@Nonnull SimpleMailAddress o) {
-        int result = domain.compareTo(o.domain);
-        if (result == 0) {
+        int result = 0;
+        if (domain != null) {
+            result = domain.compareTo(o.domain);
+        }
+        if (result == 0 && localPart != null) {
             result = localPart.compareTo(o.localPart);
         }
         return result;
