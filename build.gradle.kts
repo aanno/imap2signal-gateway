@@ -6,7 +6,7 @@ plugins {
     `maven-publish`
     idea
     eclipse
-    kotlin("jvm") version "1.3.70"
+    kotlin("jvm") version "1.3.71"
     `java-library-distribution`
 
     // Plugin which checks for dependency updates with help/dependencyUpdates task.
@@ -134,10 +134,14 @@ tasks {
         manifest {
             attributes(
                 mapOf(
-                    "Main-Class" to "com.github.aanno.imap2signal.MailFetch",
-                    "Class-Path" to configurations.runtimeClasspath
+                    // "ModuleMainClass" to "com.github.aanno.imap2signal.MailFetch",
+                    // "MainClass" to "com.github.aanno.imap2signal.MailFetch",
+                    "Main-Class" to "com.github.aanno.imap2signal.MailFetch"
+                    /* with java 11 module path, the following will NOT work
+                    , "Class-Path" to configurations.runtimeClasspath
                         .get().map{ file -> "lib/" + file.getName()}
                         .joinToString(" ")
+                        */
                 )
             )
         }
