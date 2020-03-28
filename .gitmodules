@@ -1,3 +1,6 @@
 [submodule "submodules/signal-cli"]
 	path = submodules/signal-cli
 	url = git@github.com:AsamK/signal-cli.git
+[submodule "submodules/secret-service"]
+	path = submodules/secret-service
+	url = git@github.com:aanno/secret-service.git

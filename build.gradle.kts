@@ -20,12 +20,18 @@ version = "0.0.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
+    flatDir {
+        dirs("submodules/secret-service/target")
+    }
 }
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     api("com.sun.mail", "javax.mail", "1.6.2")
-    api("de.swiesend", "secret-service", "1.0.0-RC.3")
+    // api("de.swiesend", "secret-service", "1.0.0-RC.3")
+    // does not work: not gradle but mvn!
+    // api(":secret-service")
+    api("", "secret-service", "1.0.0-RC.3")
     api("org.slf4j", "slf4j-api", "1.7.0")
     api(":signal-cli") {
         exclude("com.github.bdeneuter", "dbus-java")

@@ -3,6 +3,7 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/signal-cli" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/submodules/secret-service" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/submodules/signal-cli" vcs="Git" />
   </component>
 </project>
