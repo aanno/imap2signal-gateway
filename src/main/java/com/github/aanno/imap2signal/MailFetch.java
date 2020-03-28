@@ -75,15 +75,15 @@ public class MailFetch implements AutoCloseable {
                 sortedSet = dut.getSubjectsOfNewMessages(myMailAddr);
             }
             System.out.println("new messages: " + sortedSet.size());
-            // sortedSet = dut.filterOnLastCheck(now, sortedSet);
-            // System.out.println("messages after: " + sortedSet.size());
+            sortedSet = dut.filterOnLastCheck(now, sortedSet);
+            System.out.println("messages after: " + sortedSet.size());
             if (!sortedSet.isEmpty()) {
                 Multimap<HumanRelativeDate, MessageInfo> map = dut.binMessageInfos(sortedSet);
                 String message = dut.toMessage(map, myMailAddr);
                 LOG.info("send\n:" + message);
                 if (!testOnly) {
-                    // dut.sendWithSignal(message);
-                    // dut.setLastCheck(now);
+                    dut.sendWithSignal(message);
+                    dut.setLastCheck(now);
                 }
             }
         }
