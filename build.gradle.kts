@@ -25,6 +25,16 @@ repositories {
     }
 }
 
+configurations {
+    all {
+        resolutionStrategy {
+            preferProjectModules()
+            setForcedModules("com.sun.mail:jakarta.mail:1.6.5")
+        }
+        exclude("com.sun.mail", "javax.mail")
+    }
+}
+
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     api("com.sun.mail", "javax.mail", "1.6.2")

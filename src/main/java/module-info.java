@@ -5,6 +5,6 @@ open module imap2signal {
     requires org.bouncycastle.provider;
     requires secret.service;
     requires slf4j.api;
-    requires java.mail;
+    requires jakarta.mail;
     requires java.prefs;
 }
