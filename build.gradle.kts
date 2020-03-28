@@ -163,7 +163,16 @@ tasks {
     }
     val copyOtherDBus by register<Copy>("copyOtherDBus") {
         from(otherdbus)
-        into("lib2")
+        into("$projectDir/otherdbus")
+    }
+    distributions {
+        main {
+            contents {
+                into("otherdbus") {
+                    from("$projectDir/otherdbus")
+                }
+            }
+        }
     }
 }
 
