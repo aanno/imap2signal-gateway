@@ -7,4 +7,7 @@ open module imap2signal {
     requires slf4j.api;
     requires jakarta.mail;
     requires java.prefs;
+    // needed for sun.misc.SignalHandler
+    requires jdk.unsupported;
+    requires hkdf;
 }

@@ -18,6 +18,8 @@ plugins {
 group = "com.github.aanno.imap2signal"
 version = "0.0.1-SNAPSHOT"
 
+val otherdbus by configurations.creating
+
 repositories {
     mavenCentral()
     flatDir {
@@ -52,12 +54,16 @@ dependencies {
     api("com.squareup.okhttp3", "okhttp", "3.14.7")
 
     // api("com.github.hypfvieh", "dbus-java", "3.2.0")
+    otherdbus("com.github.hypfvieh", "dbus-java", "3.2.0")
     api("com.github.bdeneuter", "dbus-java", "2.7")
     api("org.bouncycastle", "bcprov-jdk15on", "1.64")
 
     api("com.github.marlonlom", "timeago", "4.0.1")
     api("com.google.guava", "guava", "28.2-jre")
     api("com.google.code.findbugs", "jsr305", "3.0.2")
+
+    // ??? (from maven?)
+    api("at.favre.lib", "hkdf", "1.0.2")
 
     // https://github.com/bbottema/email-rfc2822-validator
     implementation("com.github.bbottema", "emailaddress-rfc2822", "2.1.4")
@@ -155,6 +161,10 @@ tasks {
             rename(".*", "pom.xml")
         }
     }
+    val copyOtherDBus by register<Copy>("copyOtherDBus") {
+        from(otherdbus)
+        into("lib2")
+    }
 }
 
 
@@ -168,8 +178,6 @@ publishing {
 }
 
 
-/*
 tasks.named("build") {
-    dependsOn("distTar")
+    dependsOn("copyOtherDBus")
 }
-*/

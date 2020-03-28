@@ -20,7 +20,8 @@ account to a [signal](https://signal.org/) account.
 ## Java 11 start 
 
 ```bash
-java -p ".:lib" -m imap2signal/com.github.aanno.imap2signal.MailFetch
+mv lib/dbus-java-2.7.jar ../../lib2/
+java -cp "../../lib2/*" -p ".:lib" -m imap2signal/com.github.aanno.imap2signal.MailFetch
 ```
 
 ```bash
