@@ -188,7 +188,7 @@ public class MailFetch implements AutoCloseable {
         StringBuilder result = new StringBuilder();
         result.append(
                 SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT).format(new Date()))
-                .append("\n:");
+                .append(":\n");
         int entries = 0;
         LOOP:
         for (HumanRelativeDate ago : map.keySet()) {
@@ -198,7 +198,11 @@ public class MailFetch implements AutoCloseable {
                 // sender
                 result.append(mi.getFrom());
                 if (mi.getReplyTo() != null && !mi.getReplyTo().equals(mi.getFrom())) {
-                    result.append("(").append(mi.getReplyTo()).append(")");
+                    String rt = mi.getReplyTo().getLocalPart();
+                    if (rt.length() > 15) {
+                        rt = rt.substring(0, 12) + "...";
+                    }
+                    result.append("(").append(rt).append(")");
                 }
                 result.append(": ");
                 // subject
