@@ -28,6 +28,9 @@ java -cp "../../lib2/*" -p ".:lib" -m imap2signal/com.github.aanno.imap2signal.M
 java -p ".:lib" -jar imap2signal-gateway-0.0.1-SNAPSHOT.jar
 ```
 
-```bash
+## Links
 
-```
+* [secret-service](https://github.com/swiesend/secret-service) library for gnome-keyring (seahorse) access over D-Bus
+* [signal-cli](https://github.com/AsamK/signal-cli) cli (and library) for signal (messenger app)
+* [kdewallet](https://github.com/purejava/kdewallet) library for KDE Wallet access (planned)
+
