@@ -17,4 +17,9 @@ open module imap2signal {
     // needed for sun.misc.SignalHandler
     requires jdk.unsupported;
     requires hkdf;
+    requires signal.service.java;
+    requires jsr305;
+    requires signal.client.java;
+    requires signal.service.java;
+    requires emailaddress.rfc2822;
 }
