@@ -2,7 +2,7 @@ open module imap2signal {
     requires timeago;
     requires com.google.common;
     requires signal.cli;
-    requires lib;
+    requires signal.lib;
     requires org.objectweb.asm;
     requires org.objectweb.asm.commons;
     requires org.bouncycastle.provider;

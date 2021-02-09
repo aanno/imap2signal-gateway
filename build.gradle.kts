@@ -15,6 +15,8 @@ plugins {
     id("se.patrikerdes.use-latest-versions") version "0.2.15"
 }
 
+val kotlinVersion: String by project
+
 group = "com.github.aanno.imap2signal"
 version = "0.0.2-SNAPSHOT"
 
@@ -110,10 +112,11 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter", "junit-jupiter-engine", "5.7.1")
     testRuntimeOnly("org.junit.platform", "junit-platform-console", "1.7.1")
 
-    // Kotlintest
-    testImplementation("io.kotlintest", "kotlintest-core", "3.4.2")
-    testImplementation("io.kotlintest", "kotlintest-assertions", "3.4.2")
-    testImplementation("io.kotlintest", "kotlintest-runner-junit5", "3.4.2")
+    // https://kotlinlang.org/api/latest/kotlin.test/
+    // TODO aanno: consider https://github.com/kotest/kotest
+    testImplementation("org.jetbrains.kotlin", "kotlin-test", kotlinVersion)
+    testImplementation("org.jetbrains.kotlin", "kotlin-test-annotations-common", kotlinVersion)
+    testImplementation("org.jetbrains.kotlin", "kotlin-test-junit5", kotlinVersion)
 }
 
 java {
