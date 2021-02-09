@@ -28,6 +28,12 @@ $ gradle run -PappArgs="['-u', '+49*******', 'addDevice', '--uri', 'tsdevice:/?u
 $ gradle run -PappArgs="['-u', '+49*******', 'register', '-v']"
 ```
 
+Normally you need a captcha as well.
+
+For this, go to https://signalcaptchas.org/registration/generate.html with a browser _with opened debugger_. Solve the captcha and look for something starting with `signalcaptcha://` in the debugger.
+
+$ gradle run -PappArgs="['-u', '+498912591652', 'register', '-v', '--captcha', '03AGdBq2...']"
+
 Wait for voice incoming call with verification number.
 
 ```bash

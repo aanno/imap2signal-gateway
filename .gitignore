@@ -34,6 +34,8 @@ hs_err_pid*
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+.idea/sonarlint/**
+.idea/codestream.xml
 
 # Generated files
 .idea/**/contentModel.xml
@@ -138,4 +140,4 @@ gradle-app.setting
 # gradle/wrapper/gradle-wrapper.properties
 
 private/
-
+/local.properties

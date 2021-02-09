@@ -3,12 +3,16 @@ package com.github.aanno.imap2signal;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import org.asamk.Signal;
+import org.asamk.signal.BaseConfig;
 import org.asamk.signal.manager.Manager;
+import org.asamk.signal.manager.config.ServiceEnvironment;
+import org.asamk.signal.manager.NotRegisteredException;
+import org.asamk.signal.manager.AttachmentInvalidException;
+import org.whispersystems.signalservice.api.util.InvalidNumberException;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.freedesktop.secret.simple.SimpleCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.whispersystems.signalservice.api.push.exceptions.EncapsulatedExceptions;
 
 import javax.mail.Address;
 import javax.mail.Flags;
@@ -18,6 +22,7 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.search.FlagTerm;
+import java.io.File;
 import java.io.IOException;
 import java.security.Security;
 import java.text.SimpleDateFormat;
@@ -38,6 +43,9 @@ public class MailFetch implements AutoCloseable {
 
     private static final Logger LOG = LoggerFactory.getLogger(MailFetch.class);
 
+    private final static String USER_AGENT = BaseConfig.PROJECT_NAME == null ?
+            "signal-cli" : BaseConfig.PROJECT_NAME + " " + BaseConfig.PROJECT_VERSION;
+
     private static final int MAX_ENTRIES = 40;
     private static String[] SUBDOMAINS_TO_TRY = new String[]{"imap.", "mail."};
 
@@ -51,7 +59,7 @@ public class MailFetch implements AutoCloseable {
     private static final String SIGNAL_ACCOUNT = "sender";
     private static final String SIGNAL_RECIPIENTS = "recipient";
 
-    public static void main(String[] args) throws Exception, EncapsulatedExceptions {
+    public static void main(String[] args) throws Throwable {
         String mailAccount = MAIL_ACCOUNT;
         boolean testOnly = false;
         if (args.length > 0) {
@@ -149,7 +157,7 @@ public class MailFetch implements AutoCloseable {
     private Preferences prefs;
     private Session session;
     private SimpleCollection collection;
-    private Signal manager;
+    private Manager manager;
 
     public MailFetch(boolean testOnly) {
         this.testOnly = testOnly;
@@ -237,6 +245,7 @@ public class MailFetch implements AutoCloseable {
             throws MessagingException, IOException {
         SortedSet<MessageInfo> result = new TreeSet<>();
         if (session == null) {
+            // TODO aanno: OAuth2 support (for gmail), see https://eclipse-ee4j.github.io/mail/OAuth2
             session = Session.getDefaultInstance(new Properties());
         }
         Store store = session.getStore("imaps");
@@ -258,6 +267,7 @@ public class MailFetch implements AutoCloseable {
                 break;
             } catch (MessagingException e) {
                 last = e;
+                LOG.info(mailHost + " failed: " + e);
                 // try again
             }
         }
@@ -322,15 +332,19 @@ public class MailFetch implements AutoCloseable {
                 " not found in keyring collection " + KEYRING_COLLECTION_NAME);
     }
 
-    public void sendWithSignal(String message) throws IOException, EncapsulatedExceptions {
+    public void sendWithSignal(String message) throws IOException,
+            NotRegisteredException, AttachmentInvalidException, InvalidNumberException {
         String sender = new String(getPasswdFor(SIGNAL_ACCOUNT));
         String recipient = new String(getPasswdFor(SIGNAL_RECIPIENTS));
         if (manager == null) {
-            manager = new Manager(sender,
-                    System.getProperty("user.home") + "/" + SIGNAL_CONFIG_DIR);
-            ((Manager) manager).init();
+            // manager = new Manager(sender,
+            //         System.getProperty("user.home") + "/" + SIGNAL_CONFIG_DIR);
+            manager = Manager.init(sender,
+                    new File(System.getProperty("user.home"), SIGNAL_CONFIG_DIR),
+                    ServiceEnvironment.LIVE,
+                    USER_AGENT);
         }
-        manager.sendMessage(message, Collections.emptyList(), recipient);
+        manager.sendMessage(message, Collections.emptyList(), Collections.singletonList(recipient));
     }
 
     @Override

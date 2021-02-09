@@ -1,29 +1,33 @@
 val javaVersion = "11"
 
 plugins {
-    id("org.javamodularity.moduleplugin") version "1.6.0"
+    id("org.javamodularity.moduleplugin") version "1.7.0"
     `java-library`
     `maven-publish`
     idea
     eclipse
-    kotlin("jvm") version "1.3.71"
+    kotlin("jvm") version "1.4.30"
     `java-library-distribution`
 
     // Plugin which checks for dependency updates with help/dependencyUpdates task.
-    id("com.github.ben-manes.versions") version "0.28.0"
+    id("com.github.ben-manes.versions") version "0.36.0"
     // Plugin which can update Gradle dependencies, use help/useLatestVersions
-    id("se.patrikerdes.use-latest-versions") version "0.2.13"
+    id("se.patrikerdes.use-latest-versions") version "0.2.15"
 }
 
 group = "com.github.aanno.imap2signal"
-version = "0.0.1-SNAPSHOT"
+version = "0.0.2-SNAPSHOT"
 
 val otherdbus by configurations.creating
 
 repositories {
     mavenCentral()
     flatDir {
-        dirs("submodules/secret-service/target")
+        dirs(
+            "submodules/secret-service/target"
+            , "submodules/signal-cli/build/libs"
+            , "submodules/signal-cli/lib/build/libs"
+        )
     }
 }
 
@@ -31,51 +35,80 @@ configurations {
     all {
         resolutionStrategy {
             preferProjectModules()
-            setForcedModules("com.sun.mail:jakarta.mail:1.6.5")
+            setForcedModules(
+                "com.sun.mail:jakarta.mail:1.6.5"
+                , "org.ow2.asm:asm:9.1"
+                , "org.ow2.asm:asm-commons:9.1"
+                , "org.ow2.asm:asm-analysis:9.1"
+                , "org.ow2.asm:asm-tree:9.1"
+                , "org.ow2.asm:asm-util:9.1"
+            )
         }
         exclude("com.sun.mail", "javax.mail")
     }
 }
 
 dependencies {
+    // force new asm version
+    // implementation("org.ow2.asm:asm-commons:9.1")
+    // implementation("org.ow2.asm:asm-util:9.1")
+
     implementation(kotlin("stdlib-jdk8"))
-    api("com.sun.mail", "javax.mail", "1.6.2")
+    // api("com.sun.mail", "javax.mail", "1.6.2")
+    implementation("com.sun.mail:jakarta.mail:1.6.5")
+    // api("jakarta.mail:jakarta.mail-api:1.6.5")
     // api("de.swiesend", "secret-service", "1.0.0-RC.3")
     // does not work: not gradle but mvn!
     // api(":secret-service")
-    api("", "secret-service", "1.0.0-RC.3")
-    api("org.slf4j", "slf4j-api", "1.7.0")
-    api(":signal-cli") {
+    api("", "secret-service", "1.4.0")
+    api("org.slf4j", "slf4j-api", "1.7.30")
+    implementation("org.slf4j", "slf4j-simple", "1.7.30")
+
+    implementation("", "signal-cli", "0.7.4") {
         exclude("com.github.bdeneuter", "dbus-java")
         exclude("org.freedesktop.dbus", "dbus-java")
     }
+    implementation("", "lib", "0.7.4") {
+        exclude("com.github.bdeneuter", "dbus-java")
+        exclude("org.freedesktop.dbus", "dbus-java")
+    }
+
+    // TODO aanno:
+    // These are the transitive dependencies for 'signal-cli' and 'lib'
+    implementation("org.whispersystems", "signal-client-java", "0.2.3")
+    api("com.github.turasa:signal-service-java:2.15.3_unofficial_18")
+    implementation("com.google.protobuf:protobuf-javalite:3.10.0")
+    implementation("org.bouncycastle:bcprov-jdk15on:1.68")
+    // TODO aanno: if included => error: module not found: slf4j.api
+    // implementation("org.slf4j:slf4j-api:1.7.30")
+
     // ATTENTION: deps of signal-cli (UPDATED)
-    api("com.squareup.okio", "okio", "1.17.5")
-    api("com.squareup.okhttp3", "okhttp", "3.14.7")
+    // api("com.squareup.okio", "okio", "1.17.5")
+    // api("com.squareup.okhttp3", "okhttp", "3.14.7")
 
     // api("com.github.hypfvieh", "dbus-java", "3.2.0")
-    otherdbus("com.github.hypfvieh", "dbus-java", "3.2.0")
-    api("com.github.bdeneuter", "dbus-java", "2.7")
-    api("org.bouncycastle", "bcprov-jdk15on", "1.64")
+    // otherdbus("com.github.hypfvieh", "dbus-java", "3.2.0")
+    /// api("com.github.bdeneuter", "dbus-java", "2.7")
+    api("com.github.hypfvieh", "dbus-java", "3.2.4")
 
-    api("com.github.marlonlom", "timeago", "4.0.1")
-    api("com.google.guava", "guava", "28.2-jre")
+    api("com.github.marlonlom", "timeago", "4.0.3")
+    implementation("com.google.guava", "guava", "28.2-jre")
     api("com.google.code.findbugs", "jsr305", "3.0.2")
 
     // ??? (from maven?)
-    api("at.favre.lib", "hkdf", "1.0.2")
+    api("at.favre.lib", "hkdf", "1.1.0")
 
     // https://github.com/bbottema/email-rfc2822-validator
     implementation("com.github.bbottema", "emailaddress-rfc2822", "2.1.4")
 
-    runtimeOnly("org.slf4j", "slf4j-jdk14", "1.7.0")
+    // runtimeOnly("org.slf4j", "slf4j-jdk14", "1.7.0")
 
     // testApi("junit", "junit", "4.12")
 
     // JUnit 5
-    testImplementation("org.junit.jupiter", "junit-jupiter-api", "5.3.1")
-    testRuntimeOnly("org.junit.jupiter", "junit-jupiter-engine", "5.3.1")
-    testRuntimeOnly("org.junit.platform", "junit-platform-console", "1.6.0")
+    testImplementation("org.junit.jupiter", "junit-jupiter-api", "5.7.1")
+    testRuntimeOnly("org.junit.jupiter", "junit-jupiter-engine", "5.7.1")
+    testRuntimeOnly("org.junit.platform", "junit-platform-console", "1.7.1")
 
     // Kotlintest
     testImplementation("io.kotlintest", "kotlintest-core", "3.4.2")
@@ -122,7 +155,7 @@ tasks {
     }
     wrapper {
         distributionType = Wrapper.DistributionType.ALL
-        version = "6.2.2"
+        version = "6.8.2"
     }
     compileKotlin {
         kotlinOptions.jvmTarget = javaVersion
